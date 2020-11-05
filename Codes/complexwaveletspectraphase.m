@@ -1,0 +1,56 @@
+function [levels, spec ] = complexwaveletspectraphase(data, L, wf, k1, k2, ismean)
+%
+%  [slope, levels, log2spec ] = waveletspectra(data, L, wf, k1, k2)
+%  input:  data - data in time domain
+%          L - coarse level.
+%          wf - wavelet filter
+%          k1 -  start with coarse level k1 when calculating slope, k1 >= L.
+%          k2 -  end with the level  k2 when calculating slope, k2<=log2(n)-1
+%          ismean -- 0 for median and 1 for mean, default is mean.
+%  output: slope - scaling slope of log2-energies.
+%          levels - integers L, L+1, ..., log2(n)-1
+%          log2spec - log2 of levelwise averages of squared wavelet
+%                     coefficients 
+%
+% 
+if nargin == 1,  L=1;  N=6; wf=MakeCONFilter(N);  k1=1; k2=log2(length(data))-1;  ismean=1; end
+if nargin == 2,        N=6; wf=MakeCONFilter(N);  k1=L; k2=log2(length(data))-1 ; ismean=1; end
+if nargin == 3,                                   k1=L; k2=log2(length(data))-1 ; ismean=1; end
+if nargin == 4,                                         k2=log2(length(data))-1 ; ismean=1; end
+if nargin == 5,                                                                   ismean=1; end
+lnn = log2(length(data));
+%wddata = FWT_PO(data, L, wf); 
+[phasewddata modwddata] = complexphase(data, wf);
+
+y = [];
+for i =  L:(lnn-1)
+   help = phasewddata(   round(2^(i)+1) : round(2^(i+1))   )   ;
+   if  ismean == 1
+       y = [y mean(help)];
+   elseif ismean == 0
+       y = [y median(help)];
+   else error('not known average of energies. Use mean (ismean=1) or median (ismean=0)')
+   end
+end
+   levels = L:(lnn-1);
+   spec = y;
+   
+   
+%        %--- set plotting parameters -------
+%         figure;
+%         lw = 2;  
+%         set(0, 'DefaultAxesFontSize', 15);
+%         fs = 15;
+%         msize = 6;
+%         %plot(levels, log2spec,  'linewidth', lw)
+%         hold on
+%         plot(levels, log2spec, 'o', 'markersize', msize)
+%         plot(k1:k2, yy, 'r-', 'linewidth', lw)
+%         plot(k1:k2, cc + 1,'g:','linewidth', lw)
+%         text( k1,cc(1)+0.5, num2cell(slope) )
+%         xlabel('dyadic level','fontweight','bold','fontsize',fs)
+%         ylabel('log spectrum','fontweight','bold','fontsize',fs)
+%         axis tight
+%         hold off
+       
+%-------------- Brani 10/06-------------------------------------------
